@@ -6,7 +6,7 @@ require('dotenv').config();
 const express = require('express');
 const server = express();
 
-const PORT = process.env.PORT || 4000;
+const PORT = process.env.PORT || 5000;
 
 server.get('/', (request, response) => {
 
@@ -24,7 +24,7 @@ server.listen(PORT, () => {
 
 let Location = function (locObj) {
     this.search_query = 'Lynnwood';
-    this.formatted_query = locObj[0].display_namey;
+    this.formatted_query = locObj[0].display_name;
     this.latitude = locObj[0].lat;
     this.longitude = locObj[0].lon;
 };
@@ -67,3 +67,6 @@ server.get('/weather', (request, response) => {
     response.send(weatherArr);
 
 });
+server.get('*', (req, res) => {
+    res.status(500).send('Sorry, something is wrong');
+})
