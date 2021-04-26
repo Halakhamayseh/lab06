@@ -18,9 +18,7 @@ server.get('/', (request, response) => {
 
 });
 
-server.listen(PORT, () => {
-    console.log(`listening on port ${PORT}`);
-})
+
 
 
 let Location = function (locObj) {
@@ -68,6 +66,14 @@ server.get('/weather', (request, response) => {
     response.send(weatherArr);
 
 });
-server.get('*', (req, res) => {
-    res.status(500).send('Sorry, something is wrong');
+server.get('*', generalHandler)
+function generalHandler(req, res) {
+    let errObj = {
+        status: 500,
+        resText: 'Sorry, something went wrong'
+    }
+    res.status(500).send(errObj);
+}
+server.listen(PORT, () => {
+    console.log(`listening on port ${PORT}`);
 })
