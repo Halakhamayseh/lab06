@@ -18,8 +18,9 @@ server.use(cors());
 //Routes
 server.get('/location', locationHandelr);
 server.get('/weather', weatherHandler);
-server.get('*', generalHandler);
 server.get('/parks', parkHandler);
+server.get('*', generalHandler);
+
 
 //Routes Handlers
 
@@ -43,7 +44,8 @@ function locationHandelr(req, res) {
 //edit weatherHandler using map instedof forEach//
 ///e06e07c9309b411398eaf67df1959be8//
 function weatherHandler(req, res) {
-  let cityName = req.query.city;
+  let cityName = req.query.search_query;
+  // console.log(cityName);
   let key = process.env.WEATHER_KEY;
   let whtURL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${cityName}&key=${key}`;
   superagent.get(whtURL)
@@ -70,15 +72,16 @@ function generalHandler(req, res) {
   res.status(500).send(errObj);
 }
 function parkHandler(req, res) {
-  let cityName = req.query.city;
+  let cityName = req.query.search_query;
+  // console.log(cityName);
   let key = process.env.PARKS_KEY;
 
-  let parkURL = `https://developer.nps.gov/api/v1/parks?parkCode=acad&api_key=${key}`;
+  let parkURL = `https://developer.nps.gov/api/v1/parks?q=${cityName}&api_key=${key}&limit=10`;
   superagent.get(parkURL)
     .then(parkspar => {
       let pData = parkspar.body;
       let mapDefaultArray = pData.data.map(element => {
-        return new Weathers(element);
+        return new Parks(element);
       });
       res.send(mapDefaultArray);
     })
@@ -98,12 +101,14 @@ function Locations(cityyName, locData) {
 
 function Weathers(des, times) {
   this.forecast = des;
-  this.time = times;
+  this.time = new Date(times).toDateString();
 }
 
 function Parks(obj) {
   this.name = obj.fullName;
-  this.address = obj.address[0].city, obj.address[0].line1, obj.address[0].line2,
+  console.log(this.name);
+  this.address = obj.addresses[0].line1;
+  // console.log(this.address);
   this.fee = obj.entranceFees[0].cost;
   this.description = obj.description;
   this.url = obj.url;
