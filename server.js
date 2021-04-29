@@ -18,17 +18,17 @@ const PORT = process.env.PORT || 5000;
 server.use(cors());
 let client;
 let DATABASE_URL = process.env.DATABASE_URL;
-let ENV = process.env.ENV || '';
-if (ENV === 'DEV') {
-  client = new pg.Client({
-    connectionString: DATABASE_URL
-  });
-} else {
-  client = new pg.Client({
-    connectionString: DATABASE_URL,
-    ssl: {}
-  });
-}
+// let ENV = process.env.ENV || '';
+// if (ENV === 'DEV') {
+//   client = new pg.Client({
+//     connectionString: DATABASE_URL
+//   });
+// } else {
+//   client = new pg.Client({
+//     connectionString: DATABASE_URL,
+//     ssl: {rejectUnauthorized: false}
+//   });
+// }
 
 //Routes
 server.get('/location', locationHandelr);
@@ -36,7 +36,9 @@ server.get('/location', locationHandelr);
 // server.get('/parks', parkHandler);
 server.get('*', generalHandler);
 
-
+client = new pg.Client({
+  connectionString: DATABASE_URL,
+});
 //Routes Handlers
 
 function locationHandelr(req, res) {
