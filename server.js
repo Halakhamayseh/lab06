@@ -31,9 +31,12 @@ let DATABASE_URL = process.env.DATABASE_URL;
 // }
 
 //Routes
+server.get('/main', mainHandelr);
 server.get('/location', locationHandelr);
 server.get('/weather', weatherHandler);
 server.get('/parks', parkHandler);
+server.get('/movies', moviesHandelr);
+server.get('/yelp', yelpHandelr);
 server.get('*', generalHandler);
 
 client = new pg.Client({
@@ -76,7 +79,7 @@ function locationHandelr(req, res) {
 // /e06e07c9309b411398eaf67df1959be8//
 function weatherHandler(req, res) {
   let cityName = req.query.search_query;
-  // console.log(cityName);
+  
   let key = process.env.WEATHER_KEY;
   let whtURL = `https://api.weatherbit.io/v2.0/forecast/daily?city=${cityName}&key=${key}`;
   superagent.get(whtURL)
@@ -102,9 +105,16 @@ function generalHandler(req, res) {
   };
   res.status(500).send(errObj);
 }
+function mainHandelr(req, res) {
+  let errObj = {
+    status: 200,
+    resText: 'server is working fine'
+  };
+  res.status(500).send(errObj);
+}
 function parkHandler(req, res) {
   let cityName = req.query.search_query;
-  // console.log(cityName);
+ 
   let key = process.env.PARKS_KEY;
 
   let parkURL = `https://developer.nps.gov/api/v1/parks?q=${cityName}&api_key=${key}&limit=10`;
@@ -117,6 +127,54 @@ function parkHandler(req, res) {
       res.send(mapDefaultArray);
     })
     .catch (error => {
+      console.log(error);
+      res.send(error);
+    });
+
+}
+function moviesHandelr(req, res) {
+  let name = req.query.search_query;
+  
+  let key = process.env.MOVIES_KEY;
+
+  let movieURL = `https://api.themoviedb.org/3/search/movie?api_key=${key}&query=${name}`;
+  superagent.get(movieURL)
+    .then(movD => {
+      // console.log(movD);
+      let mData = movD.body;
+      // console.log(mData);
+      let mapDefaultArray = mData.results.map(element => {
+        return new Movies(element);
+      });
+      res.send(mapDefaultArray);
+    })
+    .catch(error => {
+      console.log(error);
+      res.send(error);
+    });
+
+}
+function yelpHandelr(req, res) {
+  let cityName = req.query.search_query;
+  
+  let key = process.env.YELP_KEY;
+  let page = req.query.page;
+  const rP = 5;
+  const s = ((page - 1) * rP + 1);
+
+  let yelpURL = `https://api.yelp.com/v3/businesses/search?location=${cityName}&limit=${rP}&offset${s}`;
+  superagent.get(yelpURL)
+    .set('Authorization', `Bearer ${key}`)
+    .then(yPar => {
+      // console.log(mPar);
+      let yData = yPar.body;
+      console.log(yData);
+      let mapDefaultArray = yData.businesses.map(element => {
+        return new Yelp(element);
+      });
+      res.send(mapDefaultArray);
+    })
+    .catch(error => {
       console.log(error);
       res.send(error);
     });
@@ -142,6 +200,26 @@ function Parks(obj) {
   // console.log(this.address);
   this.fee = obj.entranceFees[0].cost;
   this.description = obj.description;
+  this.url = obj.url;
+}
+function Movies(obj) {
+  this.title = obj.title;
+  // console.log(this.name);
+  this.overview = obj.overview;
+  // console.log(this.address);
+  this.average_votes = obj.vote_average;
+  this.total_votes = obj.vote_count;
+  this.image_url = obj.poster_path;
+  this.popularity = obj.popularity;
+  this.released_on = obj.release_date;
+}
+function Yelp(obj) {
+  this.name = obj.name;
+  
+  this.image_url = obj.image_url;
+
+  this.price = obj.price;
+  this.rating = obj.rating;
   this.url = obj.url;
 }
 client.connect()
